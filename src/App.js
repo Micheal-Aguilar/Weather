@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import { OPEN_WEATHER_API } from "./key";
 
@@ -8,6 +8,7 @@ function App() {
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
   const [weatherData, setWeatherData] = useState([]);
+  const [holidayData, setHolidayData] = useState([]);
 
   const handleZipChange = (event) => {
     const value = event.target.value;
@@ -27,17 +28,25 @@ function App() {
     setLat(geoData.lat);
     setLon(geoData.lon);
     const weatherResponse = await fetch(
-      `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=imperial&appid=${OPEN_WEATHER_API}`
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API}`
     );
     const weatherData = await weatherResponse.json();
     setWeatherData(weatherData.current);
+    console.log(weatherData);
   };
-  const getHolidays = (countryCode) => {};
+  const getHoliday = async () => {
+    const response = await fetch(
+      `https://date.nager.at/api/v3/publicholidays/2023/${country}`
+    );
+    const holidayData = await response.json();
+    setHolidayData(holidayData);
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     getWeather();
-    // getHolidays(countryCode);
+    getHoliday();
   };
+  console.log(holidayData);
   return (
     <div onSubmit={handleSubmit} className="App">
       <form onSubmit={handleSubmit}>
@@ -59,6 +68,28 @@ function App() {
         ></input>
         <button> Submit </button>
       </form>
+      <div>
+        <h2>Country Holidays</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Holiday Name:</th>
+              <th>Holiday Date:</th>
+            </tr>
+          </thead>
+          <tbody>
+            {holidayData.map((holiday) => {
+              return (
+                <tr key={holiday.id}>
+                  <td>{holiday.name}</td>
+                  <td>{holiday.date}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <h2>Weather</h2>
+      </div>
     </div>
   );
 }
