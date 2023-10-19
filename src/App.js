@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import { OPEN_WEATHER_API } from "./key";
 
@@ -10,28 +10,36 @@ function App() {
   const [weatherData, setWeatherData] = useState([]);
   const [holidayData, setHolidayData] = useState([]);
 
-  const handleZipChange = (event) => {
-    const value = event.target.value;
-    setZip(value);
-  };
+  useEffect(() => {
+    if (lat !== null && lon !== null) {
+      // Lat and lon are now available, call getWeather
+      getWeather();
+    }
+  }, [lat, lon]);
 
   const handleCountryChange = (event) => {
     const value = event.target.value;
     setCountry(value);
   };
 
-  const getWeather = async () => {
+  const handleZipChange = (event) => {
+    const value = event.target.value;
+    setZip(value);
+  };
+  const getGeo = async () => {
     const geoResponse = await fetch(
       `http://api.openweathermap.org/geo/1.0/zip?zip=${zip},${country}&appid=${OPEN_WEATHER_API}`
     );
     const geoData = await geoResponse.json();
     setLat(geoData.lat);
     setLon(geoData.lon);
+  };
+  const getWeather = async () => {
     const weatherResponse = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API}`
     );
     const weatherData = await weatherResponse.json();
-    setWeatherData(weatherData.current);
+    setWeatherData(weatherData);
     console.log(weatherData);
   };
   const getHoliday = async () => {
@@ -41,12 +49,12 @@ function App() {
     const holidayData = await response.json();
     setHolidayData(holidayData);
   };
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    getGeo();
     getWeather();
     getHoliday();
   };
-  console.log(holidayData);
   return (
     <div onSubmit={handleSubmit} className="App">
       <form onSubmit={handleSubmit}>
